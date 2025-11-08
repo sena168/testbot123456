@@ -1,5 +1,6 @@
-// Configuration - Using Z.AI API key that works
-const API_KEY = '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';
+// Configuration - Using backend proxy to avoid exposing API keys
+// SECURITY: API keys are securely handled on the server side
+const API_ENDPOINT = '/api/chat'; // Using backend proxy
 const MODEL = 'z-ai/glm-4.5-air:free';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -102,63 +103,48 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Function to get AI response from API
-  async function getAIResponse(userMessage) {
-    try {
-      // Using OpenRouter API with Z.AI model
-      const response = await fetch(
-        'https://openrouter.ai/api/v1/chat/completions',
-        {
+    async function getAIResponse(userMessage) {
+      try {
+        // Using backend proxy to securely call the API
+        const response = await fetch(API_ENDPOINT, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${
-              API_KEY ||
-              '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'
-            }`, // Using the API key from api-notes.md
           },
           body: JSON.stringify({
-            model: MODEL,
-            messages: [
-              {
-                role: 'system',
-                content:
-                  'You are a cyberpunk-themed AI assistant in a dystopian future. Respond in character with cyberpunk terminology and attitude. Keep responses concise but engaging.',
-              },
-              {
-                role: 'user',
-                content: userMessage,
-              },
-            ],
-          }),
-        }
-      );
+            message: userMessage
+          })
+        });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({})); // Catch potential JSON parsing errors
-        console.error('API response:', errorData);
-        console.error('Response status:', response.status, response.statusText);
-        throw new Error(
-          `API request failed with status ${response.status}: ${
-            response.statusText
-          }. Details: ${errorData.error?.message || errorData.message || 'Unknown error'}`
-        );
-      }
-
-      const data = await response.json();
-      console.log('API Response Data:', data); // Debug logging
+              const errorData = await response.json().catch(() => ({})); // Catch potential JSON parsing errors
+              console.error('API response:', errorData);
+              console.error('Response status:', response.status, response.statusText);
+              throw new Error(
+                `API request failed with status ${response.status}: ${
+                  response.statusText
+                }. Details: ${
+                  errorData.error?.message || errorData.message || 'Unknown error'
+                }`
+              );
+            }
       
-      if (!data.choices || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
-        console.error('Unexpected API response format:', data);
-        throw new Error('Invalid response format from API');
-      }
+            const data = await response.json();
+            console.log('API Response Data:', data); // Debug logging
       
-      return data.choices[0].message.content;
+            // Handle response from backend proxy
+            if (!data.response) {
+              console.error('Unexpected API response format:', data);
+              throw new Error('Invalid response format from API');
+            }
+      
+            return data.response;
     } catch (error) {
       console.error('Error fetching AI response:', error);
       console.error('Error details:', {
         message: error.message,
         stack: error.stack,
-        name: error.name
+        name: error.name,
       });
       // Fallback response if API call fails
       return (

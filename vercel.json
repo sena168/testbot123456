@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/chat.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/chat",
+      "dest": "/api/chat.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "ZAI_API_KEY": "$ZAI_API_KEY",
+    "OPENROUTER_API_KEY": "$OPENROUTER_API_KEY",
+    "MINIMAX_API_KEY": "$MINIMAX_API_KEY"
+  }
+}

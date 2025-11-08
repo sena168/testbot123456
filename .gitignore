@@ -7,3 +7,4 @@ build/
 *.log
 coverage/
 .nyc_output/
+.vercel
