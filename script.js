@@ -90,8 +90,46 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Placeholder function to generate AI responses
-    function getAIResponse(userMessage) {
+    // Function to get AI response from API
+    async function getAIResponse(userMessage) {
+        try {
+            // Using OpenRouter API for MiniMax
+            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer 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` // Using the API key from api-notes.md
+                },
+                body: JSON.stringify({
+                    model: 'minimax/minimax-m2:free',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: 'You are a cyberpunk-themed AI assistant in a dystopian future. Respond in character with cyberpunk terminology and attitude. Keep responses concise but engaging.'
+                        },
+                        {
+                            role: 'user',
+                            content: userMessage
+                        }
+                    ]
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`API request failed with status ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content;
+        } catch (error) {
+            console.error('Error fetching AI response:', error);
+            // Fallback response if API call fails
+            return "The neural network is experiencing interference. Let me try to reconnect... Error connecting to mainframe. Processing with local protocols: " + getRandomFallbackResponse(userMessage);
+        }
+    }
+
+    // Fallback function to generate AI responses in case API fails
+    function getRandomFallbackResponse(userMessage) {
         const lowerCaseMessage = userMessage.toLowerCase();
         
         if (lowerCaseMessage.includes('hello') || lowerCaseMessage.includes('hi') || lowerCaseMessage.includes('hey')) {
